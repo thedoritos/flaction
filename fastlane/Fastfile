@@ -1,0 +1,10 @@
+fastlane_version "2.50.1"
+
+default_platform :android
+
+platform :android do
+  lane :balto do
+    # gradle(task: "assembleRelease")
+    balto
+  end
+end
