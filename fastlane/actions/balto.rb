@@ -47,6 +47,16 @@ module Fastlane
       end
 
       def self.available_options
+        platform = Actions.lane_context[Actions::SharedValues::PLATFORM_NAME]
+
+        if platform == :ios or platform.nil?
+          package_default = Actions.lane_context[SharedValues::IPA_OUTPUT_PATH]
+          package_default ||= Dir["*.ipa"].sort_by { |x| File.mtime(x) }.last
+        elsif platform == :android
+          package_default = Actions.lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]
+          package_default ||= Dir["*.apk"].last || Dir[File.join("app", "build", "outputs", "apk", "app-release.apk")].last
+        end
+
         [
           FastlaneCore::ConfigItem.new(key: :project_token,
                                        env_name: "FL_BALTO_PROJECT_TOKEN",
@@ -63,6 +73,7 @@ module Fastlane
           FastlaneCore::ConfigItem.new(key: :package,
                                        env_name: "FL_BALTO_PACKAGE",
                                        description: "Package path to upload to Balto",
+                                       default_value: package_default,
                                        verify_block: proc do |value|
                                           UI.user_error!("Couldn't find file at path '#{value}'") unless File.exist?(value)
                                        end),
